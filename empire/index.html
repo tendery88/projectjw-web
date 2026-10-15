@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <title>가나디 솜털 제국</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #1d2440; overflow: hidden; }
+      #unity-canvas { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; touch-action: none; outline: none; }
+      #bar { position: fixed; left: 50%; top: 50%; width: 260px; height: 12px; margin: -6px 0 0 -130px; background: #3a4470; border-radius: 6px; overflow: hidden; }
+      #fill { width: 0; height: 100%; background: #ffcf3a; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="bar"><div id="fill"></div></div>
+    <script src="Build/Web.loader.js"></script>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      createUnityInstance(canvas, {
+        dataUrl: "Build/Web.data.unityweb",
+        frameworkUrl: "Build/Web.framework.js.unityweb",
+        codeUrl: "Build/Web.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "GanadiEmpire",
+        productVersion: "1.0",
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      }, function (progress) {
+        document.querySelector("#fill").style.width = (100 * progress) + "%";
+      }).then(function () {
+        document.querySelector("#bar").style.display = "none";
+        canvas.focus();
+      }).catch(function (message) { alert(message); });
+      // keep keyboard focus on the game (arrow keys and space would otherwise scroll the page)
+      window.addEventListener("pointerdown", function () { canvas.focus(); });
+      window.addEventListener("keydown", function (e) {
+        if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(e.key) >= 0) e.preventDefault();
+      });
+    </script>
+  </body>
+</html>
