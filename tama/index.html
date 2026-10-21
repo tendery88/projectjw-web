@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <title>이안고치</title>
+    <meta name="theme-color" content="#F1E6D2">
+    <style>
+      html, body { margin: 0; height: 100%; background: #F1E6D2; overflow: hidden; }
+      #unity-canvas { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; touch-action: none; outline: none; }
+      #bar { position: fixed; left: 50%; top: 50%; width: 260px; height: 12px; margin: -6px 0 0 -130px; background: #D9C9AE; border-radius: 6px; overflow: hidden; }
+      #fill { width: 0; height: 100%; background: #7CC6E8; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="bar"><div id="fill"></div></div>
+    <script src="Build/Web.loader.js"></script>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      createUnityInstance(canvas, {
+        dataUrl: "Build/Web.data.unityweb",
+        frameworkUrl: "Build/Web.framework.js.unityweb",
+        codeUrl: "Build/Web.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "tendery88",
+        productName: "이안고치",
+        productVersion: "1.0",
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      }, function (progress) {
+        document.querySelector("#fill").style.width = (100 * progress) + "%";
+      }).then(function () {
+        document.querySelector("#bar").style.display = "none";
+        canvas.focus();
+      }).catch(function (message) { alert(message); });
+      // 약한 햅틱 (Plugins/WebGL/Haptic.jslib가 부른다). 안드로이드 = vibrate, 아이폰 사파리(iOS 18+) = 숨긴 스위치 체크박스를 누르면 나는 햅틱.
+      // 아이폰은 진짜 터치 이벤트 안에서만 울려서, 화면을 누를 때마다 여기서 한 번 울린다. 60ms 안에 겹치면 한 번만.
+      (function () {
+        var label = null, last = 0;
+        function iosTick() {
+          if (!label) {
+            var input = document.createElement("input");
+            input.type = "checkbox"; input.setAttribute("switch", ""); input.id = "ian-haptic"; input.tabIndex = -1;
+            label = document.createElement("label"); label.htmlFor = "ian-haptic";
+            input.style.cssText = label.style.cssText = "position:fixed;left:-200px;top:0;width:1px;height:1px;opacity:0;pointer-events:none";
+            document.body.appendChild(input); document.body.appendChild(label);
+          }
+          label.click();
+          canvas.focus();
+        }
+        window.ianHapticOn = true;
+        window.ianTap = function (ms) {
+          if (!window.ianHapticOn) return;
+          var now = performance.now();
+          if (now - last < 60) return;
+          last = now;
+          try { if (navigator.vibrate) navigator.vibrate(ms || 8); else iosTick(); } catch (e) {}
+        };
+        canvas.addEventListener("touchstart", function () { if (!navigator.vibrate) window.ianTap(8); }, { passive: true });
+      })();
+      // keep keyboard focus on the game (arrow keys and space would otherwise scroll the page)
+      window.addEventListener("pointerdown", function () { canvas.focus(); });
+      window.addEventListener("keydown", function (e) {
+        if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(e.key) >= 0) e.preventDefault();
+      });
+    </script>
+  </body>
+</html>
