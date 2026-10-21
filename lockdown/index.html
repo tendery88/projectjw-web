@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <title>봉쇄 구역</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0b0907; overflow: hidden; }
+      #unity-canvas { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; touch-action: none; outline: none; background: #0b0907; }
+      #bar { position: fixed; left: 50%; top: 50%; width: 280px; height: 3px; margin: -2px 0 0 -140px; background: #2a231b; overflow: hidden; }
+      #fill { width: 0; height: 100%; background: #e8c98a; }
+      /* 폰을 세로로 들면: 가로로 돌려 달라는 안내 (게임은 가로 화면) */
+      #rot { display: none; position: fixed; inset: 0; z-index: 9; background: #0b0907; color: #e8c98a; font: 600 20px/1.6 sans-serif; text-align: center; padding-top: 42vh; }
+      @media (orientation: portrait) and (pointer: coarse) { #rot { display: block; } }
+      #err { display: none; position: fixed; inset: 0; z-index: 10; background: #0b0907; color: #e8c98a; font: 600 18px/1.6 sans-serif; text-align: center; padding: 30vh 24px 0; }
+      #err small { color: #a99f90; font-weight: 400; }
+      #err button { margin-top: 18px; padding: 10px 28px; font: 600 18px sans-serif; color: #0b0907; background: #e8c98a; border: 0; border-radius: 8px; }
+      #cap { position: fixed; left: 0; right: 0; top: 50%; margin-top: 18px; text-align: center; color: #8a7a62; font: 13px/1 sans-serif; letter-spacing: 0.3em; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="bar"><div id="fill"></div></div>
+    <div id="cap">LOADING</div>
+    <div id="rot">⟳<br>폰을 가로로 돌려 주세요</div>
+    <div id="err"></div>
+    <script src="Build/Web.loader.js?v=2610212237"></script>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      createUnityInstance(canvas, {
+        dataUrl: "Build/Web.data.unityweb?v=2610212237",   // 빌드마다 버전이 바뀌어 폰이 예전 파일과 섞어 받지 않는다
+        frameworkUrl: "Build/Web.framework.js.unityweb?v=2610212237",
+        codeUrl: "Build/Web.wasm.unityweb?v=2610212237",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "JW",
+        productName: "봉쇄 구역",
+        productVersion: "2610212237",
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),   // 폰에서 무겁지 않게
+      }, function (progress) {
+        document.querySelector("#fill").style.width = (100 * progress) + "%";
+      }).then(function () {
+        document.querySelector("#bar").style.display = "none";
+        document.querySelector("#cap").style.display = "none";
+        canvas.focus();
+      }).catch(function (message) {
+        // 알림창 대신 화면에 오류와 새로고침 단추
+        var e = document.querySelector("#err");
+        e.innerHTML = "불러오기에 실패했어요<br><small>" + String(message).replace(/</g, "&lt;").slice(0, 300) + "</small><br><button onclick=\"location.reload()\">새로고침</button>";
+        e.style.display = "block";
+      });
+      // 방향키 · 스페이스가 페이지를 굴리지 않게 늘 게임에 초점
+      window.addEventListener("keydown", function (e) { if ([32, 37, 38, 39, 40].indexOf(e.keyCode) >= 0) e.preventDefault(); canvas.focus(); });
+      canvas.addEventListener("pointerdown", function () { canvas.focus(); });
+    </script>
+  </body>
+</html>
