@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <title>마감 특공대</title>
+    <!-- 마감 특공대 웹 틀 (IanHeroes Wide 틀에서): 세로 게임이라 창에 9:16을 '맞춰 넣는다'.
+         창이 9:16보다 좁거나 같으면(폰) 화면 전체, 넓으면(PC 가로 창) 높이에 맞춘 세로 기둥을 가운데에 — 아래 HUD가 잘리지 않는다 -->
+    <style>
+      html, body { margin: 0; width: 100%; height: 100%; background: #1b1f24; overflow: hidden; }
+      #unity-canvas { position: fixed; display: block; touch-action: none; outline: none; background: #1b1f24; }
+      #bar { position: fixed; left: 50%; top: 50%; width: 260px; height: 12px; margin: -6px 0 0 -130px; background: #39424d; border-radius: 6px; overflow: hidden; }
+      #fill { width: 0; height: 100%; background: #e8b04a; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="bar"><div id="fill"></div></div>
+    <script src="Build/Web.loader.js"></script>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      var ASPECT = 9 / 16;          // 폭 / 높이 (기준 1080 x 1920)
+      function fit() {
+        var w = window.innerWidth, h = window.innerHeight;
+        var cw = w, ch = h;
+        if (w / h > ASPECT) cw = Math.round(h * ASPECT);       // 넓은 창: 높이에 맞추고 가운데
+        canvas.style.width = cw + "px";
+        canvas.style.height = ch + "px";
+        canvas.style.left = Math.round((w - cw) / 2) + "px";
+        canvas.style.top = "0px";
+      }
+      // 픽셀 비율: 처음 값으로 굳으면 창을 옮기거나 확대했을 때 흐려지거나 어긋난다 → 크기가 바뀔 때마다 다시 알려 준다 (#167)
+      var unity = null;
+      function dpr() { return Math.min(window.devicePixelRatio || 1, 2); }
+      function refit() { fit(); if (unity && unity.Module) unity.Module.devicePixelRatio = dpr(); }
+      fit();
+      window.addEventListener("resize", refit);
+      window.addEventListener("orientationchange", function () { setTimeout(refit, 100); });
+
+      createUnityInstance(canvas, {
+        dataUrl: "Build/Web.data.unityweb",
+        frameworkUrl: "Build/Web.framework.js.unityweb",
+        codeUrl: "Build/Web.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "마감 특공대",
+        productVersion: "1.0",
+        devicePixelRatio: dpr(),
+      }, function (progress) {
+        document.querySelector("#fill").style.width = (100 * progress) + "%";
+      }).then(function (instance) {
+        unity = instance;
+        refit();
+        document.querySelector("#bar").style.display = "none";
+        canvas.focus();
+      }).catch(function (message) { alert(message); });
+      // 첫 탭이 초점 잡기로만 쓰이지 않게 (누르면 바로 게임이 받는다), 화살표 · 스페이스로 페이지가 굴러가지 않게
+      window.addEventListener("pointerdown", function () { canvas.focus(); });
+      window.addEventListener("keydown", function (e) {
+        if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(e.key) >= 0) e.preventDefault();
+      });
+    </script>
+  </body>
+</html>
